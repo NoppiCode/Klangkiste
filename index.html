@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14122B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Klangkiste">
+<meta name="description" content="Klangkiste – bunte Klang-Knöpfe mischen und eigene Lieder bauen.">
+<title>Klangkiste</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{
+  --bg:#14122B; --surf:#221F45; --surf2:#1C1A3A; --line:#2E2A5A; --line2:#5A5590;
+  --txt:#F5F3FF; --mut:#B8B3E0;
+  --red:#FF6B57; --blue:#4D9FFF; --yel:#FFC93C; --mint:#3EE0A8; --pink:#FF7AC6; --lila:#B39DFF;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font-family:ui-rounded,"Nunito","SF Pro Rounded","Varela Round","Segoe UI",Roboto,system-ui,sans-serif;
+  overscroll-behavior:none}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font-family:inherit;color:inherit;font-size:inherit}
+button:focus-visible,[role=slider]:focus-visible,input:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+svg{flex-shrink:0}
+#app{max-width:480px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+#screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(18px + env(safe-area-inset-top)) 18px 22px;display:flex;flex-direction:column;gap:18px}
+#screen>*{flex-shrink:0}
+#dock:empty{display:none}
+#dock{background:var(--surf2);border-top:1px solid var(--line);padding:12px 18px}
+#nav{display:flex;justify-content:space-around;background:var(--surf2);border-top:1px solid var(--line);padding:6px 2px calc(8px + env(safe-area-inset-bottom))}
+.nav-btn{position:relative;background:none;border:0;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:700;min-width:60px;min-height:52px;cursor:pointer;padding:4px;border-radius:14px}
+.nav-btn.on{color:var(--yel);font-weight:800}
+.nav-btn .badge{position:absolute;top:4px;right:12px;width:10px;height:10px;border-radius:5px;background:var(--red);border:2px solid var(--surf2)}
+
+.row{display:flex;align-items:center}
+.gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}
+.grow{flex:1;min-width:0}
+.col{display:flex;flex-direction:column}
+.b{font-weight:800}
+.sm{font-size:13px}.xs{font-size:12px}
+.mut{color:var(--mut)}
+.h1{font-weight:800;font-size:24px;line-height:1.15}
+.h2{font-weight:800;font-size:20px}
+.ellip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{background:var(--surf);border-radius:24px;padding:18px}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:26px}
+.logo-ic{width:44px;height:44px;border-radius:14px;background:var(--yel);display:flex;align-items:center;justify-content:center;color:var(--bg)}
+.stars{display:flex;align-items:center;gap:6px;background:var(--surf);border-radius:22px;padding:0 14px 0 10px;height:44px;font-weight:800;font-size:17px;color:var(--yel);border:0;cursor:pointer}
+.stars.pop{animation:pop .5s}
+@keyframes pop{30%{transform:scale(1.25)}}
+
+.btn{border:0;cursor:pointer;border-radius:18px;min-height:52px;padding:0 20px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.yel{background:var(--yel);color:var(--bg)}
+.btn.mint{background:var(--mint);color:var(--bg)}
+.btn.dark{background:var(--bg);color:var(--txt)}
+.btn.ghost{background:var(--surf);color:var(--txt)}
+.btn.outline{background:transparent;color:var(--txt);border:2.5px solid var(--c,var(--mint))}
+.btn.small{min-height:44px;padding:0 14px;font-size:14px;border-radius:14px}
+.btn[disabled]{opacity:.55;cursor:default}
+.ic-btn{width:44px;height:44px;border-radius:22px;border:0;background:var(--surf);color:var(--txt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ic-btn.light{background:var(--txt);color:var(--bg)}
+
+/* Start */
+.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.hero-deco{position:absolute;right:-18px;top:-18px;display:grid;grid-template-columns:repeat(3,34px);gap:8px;transform:rotate(12deg)}
+.hero-deco i{width:34px;height:34px;border-radius:10px;display:block}
+.hero-t{font-weight:800;font-size:29px;line-height:1.1;max-width:220px}
+.hero-s{font-size:15px;color:#C9C5EC;line-height:1.4;max-width:250px}
+.level{display:flex;align-items:center;gap:14px}
+.lvl-badge{width:56px;height:56px;border-radius:18px;background:var(--lila);color:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:22px;line-height:1}
+.lvl-badge small{font-size:10px;letter-spacing:.5px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--yel);border-radius:5px;transition:width .5s}
+.gift{display:flex;align-items:center;gap:14px;background:var(--pink);color:var(--bg);border:0;border-radius:24px;padding:14px 16px;cursor:pointer;text-align:left;animation:wiggle 2.4s infinite}
+@keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-1.5deg)}90%{transform:rotate(1.5deg)}95%{transform:rotate(-1deg)}}
+.worlds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.world{border:0;cursor:pointer;text-align:left;color:var(--bg);border-radius:22px;padding:14px 16px;height:104px;display:flex;flex-direction:column;justify-content:space-between;position:relative;outline-offset:3px}
+.world.sel{box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--txt)}
+.world.locked{background:var(--bg)!important;color:var(--mut);border:2px dashed var(--line2)}
+.world .tag{position:absolute;top:12px;right:12px;background:var(--bg);color:var(--txt);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:800}
+.world-n{font-weight:800;font-size:16px}
+.song{display:flex;align-items:center;gap:12px;background:var(--surf);border-radius:18px;padding:10px 10px 10px 12px}
+.song-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:none;border:0;cursor:pointer;text-align:left;padding:0;min-height:44px}
+.song-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding-bottom:10px;flex-shrink:0}
+.song-ic i{width:4px;background:var(--bg);border-radius:2px;display:block}
+.song-ic i:nth-child(1){height:12px}.song-ic i:nth-child(2){height:22px}.song-ic i:nth-child(3){height:16px}.song-ic i:nth-child(4){height:8px}
+.song.playing .song-ic i{animation:eq .5s infinite alternate}
+.song.playing .song-ic i:nth-child(2){animation-delay:-.2s}.song.playing .song-ic i:nth-child(3){animation-delay:-.35s}.song.playing .song-ic i:nth-child(4){animation-delay:-.1s}
+@keyframes eq{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+.song-ic i{transform-origin:bottom}
+.empty{border:2px dashed var(--line2);border-radius:20px;padding:18px;text-align:center;color:var(--mut);font-size:14px;line-height:1.5}
+
+/* Studio */
+.tempo{background:var(--surf);border:0;border-radius:14px;padding:6px 12px;text-align:center;cursor:pointer;min-height:44px;min-width:64px}
+.tempo .v{font-weight:800;font-size:18px;line-height:1.1}
+.tempo .n{font-size:11px;color:var(--mut);font-weight:700}
+.segs{display:flex;gap:6px}
+.segs i{flex:1;height:8px;border-radius:4px;background:#3A3670;display:block;transition:background .08s}
+.segs i.lit{background:var(--yel)}
+.grp-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.grp-h .dotc{width:10px;height:10px;border-radius:5px}
+.grp-h .b{font-size:14px;letter-spacing:.3px}
+.pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pad{height:74px;border-radius:20px;border:2.5px solid var(--c);background:var(--surf);color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:800;font-size:14px;cursor:pointer;padding:0 2px;transition:background .15s,box-shadow .2s,transform .12s;touch-action:manipulation}
+.pad .dot{width:16px;height:16px;border-radius:8px;border:2.5px solid var(--c)}
+.pad .eq{display:none;align-items:flex-end;gap:3px;height:16px}
+.pad .eq i{width:4px;border-radius:2px;background:var(--bg);display:block;transform-origin:bottom}
+.pad .eq i:nth-child(1){height:10px}.pad .eq i:nth-child(2){height:16px}.pad .eq i:nth-child(3){height:7px}
+.pad.on{background:var(--c);color:var(--bg);box-shadow:0 0 0 5px var(--g);transform:scale(1.03)}
+.pad.on .dot{display:none}.pad.on .eq{display:flex}
+.pad.hit{animation:hit .2s ease-out}
+.pad.on.hit .eq i{animation:eq .2s alternate 2}
+@keyframes hit{0%{transform:scale(1.08)}100%{transform:scale(1.03)}}
+.pad.locked{border:2px dashed var(--line2);color:var(--mut);gap:2px;font-size:13px}
+.cost{display:inline-flex;align-items:center;gap:3px;color:var(--yel);font-weight:800;font-size:12px}
+.dock-row{display:flex;align-items:center;gap:12px}
+.bigplay{width:64px;height:64px;border-radius:32px;border:0;background:var(--yel);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bigplay.on{background:var(--txt)}
+
+/* Raster */
+.cells,.bnums{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.bnums div{text-align:center;font-size:12px;font-weight:800;color:var(--mut)}
+.bnums div.head{color:var(--yel)}
+.track-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.track-h .sq{width:22px;height:22px;border-radius:7px}
+.cell{height:46px;border-radius:12px;border:2.5px solid var(--line);background:var(--surf);cursor:pointer;padding:0;transition:background .1s}
+.cell.alt{background:var(--surf2)}
+.cell.on{background:var(--c);border-color:var(--c)}
+.cell.head{border-color:var(--txt)}
+.cell.on.head{box-shadow:0 0 0 4px var(--g)}
+
+/* Mixer */
+.faders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fcol{display:flex;flex-direction:column;align-items:center;gap:10px}
+.fval{font-weight:800;font-size:16px}
+.fader{width:56px;height:200px;display:flex;justify-content:center;cursor:pointer;touch-action:none;border-radius:12px}
+.rail{position:relative;width:14px;height:100%;border-radius:7px;background:var(--line)}
+.rail .fill{position:absolute;left:0;bottom:0;width:100%;border-radius:7px;background:var(--c)}
+.rail .thumb{position:absolute;left:-15px;width:44px;height:28px;border-radius:10px;background:var(--txt);box-shadow:0 4px 0 #0B0A1C}
+.fcol.muted .fill{background:#3A3670}.fcol.muted .thumb{background:#8B86BF}.fcol.muted .fval,.fcol.muted .fname{color:var(--mut)}
+.mute{width:44px;height:44px;border-radius:14px;border:0;background:var(--c);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mute.off{background:var(--bg);border:2.5px solid var(--c);color:var(--c)}
+.fname{font-weight:800;font-size:12px}
+.fxgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.knob{border:0;cursor:pointer;background:var(--surf);color:var(--txt);border-radius:20px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.knob.locked{background:var(--bg);border:2px dashed var(--line2);color:var(--mut)}
+.knob .kl{font-size:12px;color:var(--mut);font-weight:700}
+
+/* Schatzkiste */
+.earn{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.earn div{background:var(--bg);border-radius:16px;padding:10px 12px;font-size:13px;line-height:1.35}
+.earn b{color:var(--yel)}
+.item{display:flex;align-items:center;gap:12px;background:var(--surf);border-radius:18px;padding:10px 10px 10px 12px}
+.item-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--bg);flex-shrink:0}
+.item.own .item-ic{opacity:.95}
+.owned{display:flex;align-items:center;gap:4px;color:var(--mint);font-weight:800;font-size:13px;padding-right:8px}
+.ach{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--surf)}
+.ach.done{background:#26324A}
+.ach-ic{width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--mut);flex-shrink:0}
+.ach.done .ach-ic{background:var(--yel);color:var(--bg)}
+
+/* Modal, Toast */
+#modal{position:fixed;inset:0;z-index:50;display:none}
+#modal.open{display:block}
+.scrim{position:absolute;inset:0;background:rgba(8,7,20,.7)}
+.sheet{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surf);border-radius:28px 28px 0 0;padding:24px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;animation:up .25s ease-out}
+@keyframes up{from{transform:translate(-50%,40px);opacity:0}}
+.sheet .btn{width:100%}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:800;font-size:14px}
+.field input{height:52px;border-radius:16px;border:2.5px solid var(--line2);background:var(--bg);color:var(--txt);padding:0 16px;font-size:17px;font-family:inherit;font-weight:700;-webkit-user-select:text;user-select:text}
+.big-ic{width:72px;height:72px;border-radius:24px;display:flex;align-items:center;justify-content:center;align-self:center;color:var(--bg)}
+.center{text-align:center}
+#toasts{position:fixed;left:0;right:0;top:calc(10px + env(safe-area-inset-top));z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--txt);color:var(--bg);border-radius:18px;padding:10px 16px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:tin .3s ease-out, tout .3s ease-in 2.4s forwards;max-width:92vw}
+.toast .st{color:#C98A00}
+@keyframes tin{from{transform:translateY(-20px);opacity:0}}
+@keyframes tout{to{transform:translateY(-20px);opacity:0}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+.conf{position:absolute;top:-20px;width:12px;height:16px;border-radius:3px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="screen" aria-live="polite"></main>
+  <div id="dock"></div>
+  <nav id="nav" aria-label="Hauptmenü"></nav>
+</div>
+<div id="modal"></div>
+<div id="toasts" role="status"></div>
+<div id="confetti"></div>
+<noscript><p style="padding:20px">Für die Klangkiste muss JavaScript eingeschaltet sein.</p></noscript>
+<script>
+'use strict';
+/* =========================================================
+   Klangkiste – Musik-Mix-Spiel (HTML/PWA, ohne externe Dateien)
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const clone = o => JSON.parse(JSON.stringify(o));
+const today = () => { const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
+
+/* ---------- Icons ---------- */
+const sv = (p, s=24, w=2.2) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON = {
+  play: s => `<svg width="${s||24}" height="${s||24}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>`,
+  pause: s => `<svg width="${s||24}" height="${s||24}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`,
+  stop: s => `<svg width="${s||24}" height="${s||24}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
+  star: s => `<svg width="${s||20}" height="${s||20}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`,
+  note: s => sv('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>', s, 2.4),
+  home: s => sv('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', s),
+  grid: s => sv('<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>', s),
+  raster: s => sv('<path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 3v18M16 3v18"/>', s),
+  mixer: s => sv('<path d="M6 3v18M12 3v18M18 3v18"/><rect x="3.5" y="13" width="5" height="3" rx="1"/><rect x="9.5" y="7" width="5" height="3" rx="1"/><rect x="15.5" y="15" width="5" height="3" rx="1"/>', s),
+  chest: s => sv('<path d="M3 10h18v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 10V8a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2"/><rect x="10" y="9" width="4" height="5" rx="1"/>', s),
+  lock: s => sv('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', s),
+  save: s => sv('<path d="M5 3h11l3 3v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M8 3v5h7V3"/><rect x="8" y="13" width="8" height="5" rx="1"/>', s),
+  gift: s => sv('<rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7h14v-7"/><path d="M12 8v12"/><path d="M12 8c-2-4-6-4-6-1.5S10 8 12 8zM12 8c2-4 6-4 6-1.5S14 8 12 8z"/>', s),
+  pencil: s => sv('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', s),
+  trash: s => sv('<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>', s),
+  dice: s => sv('<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/>', s),
+  eraser: s => sv('<path d="M8 20h12"/><path d="M4.5 14.5l9-9a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 18H7z"/>', s),
+  check: s => sv('<path d="M5 12.5l4.5 4.5L19 7.5"/>', s, 2.8),
+  vol: s => sv('<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>', s, 2.4),
+  mute: s => sv('<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/>', s, 2.4),
+  ear: s => sv('<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2.5" y="14" width="5" height="7" rx="2"/><rect x="16.5" y="14" width="5" height="7" rx="2"/>', s),
+  trophy: s => sv('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4a3 3 0 0 0 4 4M16 6h4a3 3 0 0 1-4 4"/><path d="M12 13v4M8 21h8M9 21v-3h6v3"/>', s),
+  install: s => sv('<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/>', s, 2.4),
+  plus: s => sv('<path d="M12 5v14M5 12h14"/>', s, 2.6),
+  world: {
+    jungle: s => sv('<path d="M12 22V10"/><path d="M12 10c0-4 3-7 8-7 0 5-3 8-8 8"/><path d="M12 13c0-3-2.5-6-7-6 0 4 2.5 7 7 7"/>', s),
+    sea: s => sv('<path d="M3 13c4-1 4 3 8 2s4-3 9-2"/><path d="M3 18c4-1 4 3 8 2s4-3 9-2"/><circle cx="9" cy="7" r="2"/><circle cx="16" cy="5" r="1.4"/>', s),
+    space: s => sv('<circle cx="12" cy="12" r="5"/><path d="M3 15c3 3 15 3 18-6"/><path d="M19 3l.6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/>', s),
+    disco: s => sv('<circle cx="12" cy="13" r="7"/><path d="M5 13h14M12 6v14M7 8.5c3 2 7 2 10 0M7 17.5c3-2 7-2 10 0"/><path d="M12 2v4"/>', s),
+    spook: s => sv('<path d="M5 21V11a7 7 0 0 1 14 0v10l-2.5-2-2.3 2-2.2-2-2.2 2-2.3-2z"/><circle cx="9.5" cy="11" r="1.2" fill="currentColor"/><circle cx="14.5" cy="11" r="1.2" fill="currentColor"/>', s)
+  },
+  fx: s => sv('<path d="M5 19L15 9"/><path d="M15 3v2M19 5l-1.5 1.5M21 9h-2M19 13l-1.5-1.5M11 5l1.5 1.5"/>', s)
+};
+
+/* ---------- Spielinhalte ---------- */
+const GROUPS = [
+  {id:'drums',  name:'Trommeln', color:'#FF6B57', glow:'rgba(255,107,87,.38)'},
+  {id:'bass',   name:'Bass', color:'#4D9FFF', glow:'rgba(77,159,255,.38)'},
+  {id:'melody', name:'Melodie', color:'#FFC93C', glow:'rgba(255,201,60,.38)'},
+  {id:'voice',  name:'Stimmen & Geräusche', short:'Stimmen', color:'#3EE0A8', glow:'rgba(62,224,168,.38)'}
+];
+const G = Object.fromEntries(GROUPS.map(g => [g.id, g]));
+
+// pat: 8 Schläge; 0 = Pause, Zahl = Ton (Stufe in der Fünfton-Leiter der Klangwelt)
+const PADS = [
+  {id:'kick',  g:'drums', label:'Bumm',    pat:[1,0,0,0,1,0,0,0]},
+  {id:'snare', g:'drums', label:'Tschak',  pat:[0,0,1,0,0,0,1,0]},
+  {id:'hat',   g:'drums', label:'Klick',   pat:[1,1,1,1,1,1,1,1]},
+  {id:'clap',  g:'drums', label:'Klatsch', pat:[0,0,1,0,0,0,1,1]},
+  {id:'bongo', g:'drums', label:'Bongo',   pat:[5,0,3,5,0,3,0,0], pitched:true, cost:6},
+  {id:'crash', g:'drums', label:'Becken',  pat:[1,0,0,0,0,0,0,0], cost:8},
+  {id:'brumm', g:'bass', label:'Brumm',   pat:[1,0,0,1,0,0,1,0], pitched:true, oct:-24},
+  {id:'wobbel',g:'bass', label:'Wobbel',  pat:[1,0,1,0,4,0,4,0], pitched:true, oct:-24},
+  {id:'tief',  g:'bass', label:'Tief',    pat:[1,0,0,0,4,0,0,0], pitched:true, oct:-24},
+  {id:'groove',g:'bass', label:'Groove',  pat:[1,0,1,1,0,3,0,5], pitched:true, oct:-24},
+  {id:'tuba',  g:'bass', label:'Tuba',    pat:[1,0,0,5,1,0,0,5], pitched:true, oct:-24, cost:6},
+  {id:'hopp',  g:'bass', label:'Hüpfbass',pat:[1,1,0,1,1,0,1,4], pitched:true, oct:-24, cost:10},
+  {id:'piano', g:'melody', label:'Piano',  pat:[1,0,3,0,5,0,3,0], pitched:true},
+  {id:'bell',  g:'melody', label:'Glocke', pat:[8,0,0,0,7,0,0,0], pitched:true},
+  {id:'flute', g:'melody', label:'Flöte',  pat:[3,0,0,2,0,0,1,0], pitched:true, oct:12},
+  {id:'synth', g:'melody', label:'Synth',  pat:[6,6,0,8,0,7,6,0], pitched:true},
+  {id:'xylo',  g:'melody', label:'Xylofon',pat:[1,3,5,8,5,3,0,0], pitched:true, oct:12, cost:6},
+  {id:'guitar',g:'melody', label:'Gitarre',pat:[1,0,1,0,4,0,5,0], pitched:true, oct:-12, cost:10},
+  {id:'harp',  g:'melody', label:'Harfe',  pat:[1,3,5,8,10,8,5,3], pitched:true, cost:14},
+  {id:'hey',   g:'voice', label:'Hey!',  pat:[0,0,0,0,0,0,1,0]},
+  {id:'uuh',   g:'voice', label:'Uuh',   pat:[5,0,0,0,0,0,0,0], pitched:true, oct:-12},
+  {id:'zisch', g:'voice', label:'Zisch', pat:[0,0,0,0,1,0,0,0]},
+  {id:'piep',  g:'voice', label:'Piep',  pat:[0,0,8,0,0,9,0,0], pitched:true, oct:12},
+  {id:'meow',  g:'voice', label:'Miau',  pat:[0,0,0,0,0,1,0,0], cost:8},
+  {id:'woof',  g:'voice', label:'Wuff',  pat:[0,0,0,1,0,0,0,0], cost:8},
+  {id:'laser', g:'voice', label:'Laser', pat:[0,0,0,0,0,0,0,1], cost:12}
+];
+const PAD = Object.fromEntries(PADS.map(p => [p.id, p]));
+const FALLBACK = [1,3,5,3,6,5,3,2];
+
+const WORLDS = [
+  {id:'jungle', name:'Dschungel',   color:'#3EE0A8', root:60, scale:'maj', tempo:110},
+  {id:'sea',    name:'Unterwasser', color:'#4D9FFF', root:57, scale:'min', tempo:90},
+  {id:'space',  name:'Weltraum',    color:'#FF7AC6', root:62, scale:'min', tempo:120},
+  {id:'disco',  name:'Disko',       color:'#FFC93C', root:65, scale:'maj', tempo:130, cost:15},
+  {id:'spook',  name:'Spukschloss', color:'#B39DFF', root:64, scale:'min', tempo:100, cost:25}
+];
+const WORLD = Object.fromEntries(WORLDS.map(w => [w.id, w]));
+const NAMES = {
+  jungle:['Affen-Party','Papageien-Pop','Tiger-Tanz','Lianen-Swing','Elefanten-Stampf'],
+  sea:['Wal-Gesang','Quallen-Disko','Blubber-Blues','Krabben-Rock','Delfin-Hüpfer'],
+  space:['Raketen-Beat','Sternen-Tanz','Alien-Groove','Mond-Melodie','Kometen-Song'],
+  disco:['Disko-Kuh','Glitzer-Groove','Funkel-Fieber','Tanzflächen-Hit','Spiegelkugel-Song'],
+  spook:['Gespenster-Polka','Geister-Groove','Mitternachts-Mix','Fledermaus-Funk','Gruselkeller-Beat']
+};
+
+const FX = [
+  {id:'hall',   name:'Hall',    color:'#FF7AC6'},
+  {id:'echo',   name:'Echo',    color:'#4D9FFF', cost:5},
+  {id:'robot',  name:'Roboter', color:'#3EE0A8', cost:10},
+  {id:'wobble', name:'Wackeln', color:'#FFC93C', cost:12},
+  {id:'bubble', name:'Blubber', color:'#FF6B57', cost:15}
+];
+const FXI = Object.fromEntries(FX.map(f => [f.id, f]));
+
+const TEMPOS = [{v:85,n:'Langsam'},{v:110,n:'Mittel'},{v:130,n:'Schnell'},{v:150,n:'Turbo'}];
+const tempoName = v => (TEMPOS.slice().reverse().find(t => v >= t.v) || TEMPOS[0]).n;
+
+const LEVELS = [
+  {at:0,n:'Klang-Küken'},{at:10,n:'Beat-Biber'},{at:25,n:'Takt-Tiger'},{at:45,n:'Groove-Giraffe'},
+  {at:70,n:'Bass-Bär'},{at:100,n:'Melodie-Magier'},{at:140,n:'Mix-Meister'},{at:190,n:'Musik-Legende'}
+];
+const levelIdx = t => { let i = 0; LEVELS.forEach((l,k) => { if (t >= l.at) i = k; }); return i; };
+
+const ACH = [
+  {id:'first_sound', t:'Erster Ton',       d:'Schalte einen Klang an.', r:2,  ok:() => S.stats.maxActive >= 1},
+  {id:'band',        t:'Kleine Band',      d:'Lass 4 Klänge gleichzeitig spielen.', r:3, ok:() => S.stats.maxActive >= 4},
+  {id:'orchestra',   t:'Großes Orchester', d:'Lass 8 Klänge gleichzeitig spielen.', r:5, ok:() => S.stats.maxActive >= 8},
+  {id:'first_song',  t:'Erster Hit',       d:'Speichere deinen ersten Mix.', r:5, ok:() => S.songs.length >= 1},
+  {id:'five_songs',  t:'Plattensammlung',  d:'Speichere 5 Mixe.', r:10, ok:() => S.songs.length >= 5},
+  {id:'raster',      t:'Raster-Künstler',  d:'Ändere 20 Kästchen im Beat-Raster.', r:4, ok:() => S.stats.steps >= 20},
+  {id:'fx',          t:'Zauberlehrling',   d:'Probiere einen Effekt aus.', r:2, ok:() => !!S.stats.fx},
+  {id:'worlds',      t:'Weltreisender',    d:'Mische in 3 Klangwelten.', r:6, ok:() => S.stats.worlds.length >= 3},
+  {id:'loops',       t:'Dauerbrenner',     d:'Lass deine Musik 100 Runden laufen.', r:8, ok:() => S.stats.loops >= 100},
+  {id:'listen',      t:'Zuhörer',          d:'Hör dir einen gespeicherten Mix an.', r:2, ok:() => !!S.stats.listened},
+  {id:'treasure',    t:'Schatzsucher',     d:'Schalte etwas in der Schatzkiste frei.', r:3, ok:() => S.unlocked.length >= 1},
+  {id:'turbo',       t:'Turbo-Taste',      d:'Stell das Tempo auf Turbo.', r:2, ok:() => !!S.stats.turbo}
+];
+
+/* ---------- Speicherstand ---------- */
+const KEY = 'klangkiste.v1';
+function fresh() {
+  return {v:1, stars:0, total:0, unlocked:[], ach:{}, songs:[], edit:null, dirty:false, activity:false,
+    gift:null, loopCount:0, saveDay:{d:'',n:0},
+    stats:{loops:0, steps:0, worlds:[], maxActive:0, fx:false, listened:false, turbo:false}};
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && d.v === 1) {
+      const f = fresh();
+      return Object.assign(f, d, {stats:Object.assign(f.stats, d.stats || {})});
+    }
+  } catch (e) {}
+  return fresh();
+}
+let S = load();
+let saveTimer = null;
+function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }, 120);
+}
+function newMix(world) {
+  const w = WORLD[world] || WORLDS[0];
+  return {id:null, name:'', world:w.id, tempo:w.tempo, active:[], patterns:{},
+    vol:{drums:80, bass:70, melody:70, voice:60}, mute:{}, fx:{hall:1}};
+}
+if (!S.edit) S.edit = newMix('jungle');
+
+const owns = id => S.unlocked.includes(id);
+const isFree = item => !item.cost || owns(item.id);
+const patOf = (mix, id) => mix.patterns[id] || PAD[id].pat;
+
+/* ---------- Klang-Engine (Web Audio, alles synthetisch) ---------- */
+let AC = null, N = null, NOISE = null;
+function audio() {
+  if (!AC) {
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) { toast('Dein Browser kann leider keine Töne abspielen.'); return null; }
+    AC = new C({latencyHint:'interactive'});
+    buildGraph();
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function impulse(sec) {
+  const r = AC.sampleRate, len = Math.floor(r * sec), b = AC.createBuffer(2, len, r);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  }
+  return b;
+}
+function buildGraph() {
+  const c = AC, n = {};
+  n.bus = c.createGain();
+  n.trem = c.createGain();
+  n.tremLfo = c.createOscillator(); n.tremLfo.frequency.value = 4;
+  n.tremDepth = c.createGain(); n.tremDepth.gain.value = 0;
+  n.tremLfo.connect(n.tremDepth); n.tremDepth.connect(n.trem.gain); n.tremLfo.start();
+  n.filt = c.createBiquadFilter(); n.filt.type = 'lowpass'; n.filt.frequency.value = 20000; n.filt.Q.value = 0.7;
+  n.filtLfo = c.createOscillator(); n.filtLfo.frequency.value = 0.5;
+  n.filtDepth = c.createGain(); n.filtDepth.gain.value = 0;
+  n.filtLfo.connect(n.filtDepth); n.filtDepth.connect(n.filt.frequency); n.filtLfo.start();
+  n.comp = c.createDynamicsCompressor();
+  n.comp.threshold.value = -16; n.comp.ratio.value = 4; n.comp.attack.value = 0.003; n.comp.release.value = 0.2;
+  n.master = c.createGain(); n.master.gain.value = 0.85;
+  n.bus.connect(n.trem); n.trem.connect(n.filt); n.filt.connect(n.comp); n.comp.connect(n.master); n.master.connect(c.destination);
+  // Hall
+  n.rev = c.createConvolver(); n.rev.buffer = impulse(2.6);
+  n.revSend = c.createGain(); n.revSend.gain.value = 0;
+  n.revSend.connect(n.rev); n.rev.connect(n.bus);
+  // Echo
+  n.dly = c.createDelay(2); n.dly.delayTime.value = 0.4;
+  n.fb = c.createGain(); n.fb.gain.value = 0.3;
+  n.dlyLp = c.createBiquadFilter(); n.dlyLp.type = 'lowpass'; n.dlyLp.frequency.value = 2600;
+  n.dlySend = c.createGain(); n.dlySend.gain.value = 0;
+  n.dlySend.connect(n.dly); n.dly.connect(n.dlyLp); n.dlyLp.connect(n.fb); n.fb.connect(n.dly); n.dlyLp.connect(n.bus);
+  // Roboter (Ringmodulation)
+  n.ring = c.createOscillator(); n.ring.type = 'square'; n.ring.frequency.value = 70; n.ring.start();
+  n.groups = {};
+  GROUPS.forEach(g => {
+    const x = {};
+    x.in = c.createGain(); x.dry = c.createGain(); x.rm = c.createGain(); x.rm.gain.value = 0;
+    x.wet = c.createGain(); x.wet.gain.value = 0; x.vol = c.createGain();
+    x.in.connect(x.dry); x.dry.connect(x.vol);
+    x.in.connect(x.rm); n.ring.connect(x.rm.gain); x.rm.connect(x.wet); x.wet.connect(x.vol);
+    x.vol.connect(n.bus); x.vol.connect(n.revSend); x.vol.connect(n.dlySend);
+    n.groups[g.id] = x;
+  });
+  N = n;
+  const len = c.sampleRate;
+  NOISE = c.createBuffer(1, len, c.sampleRate);
+  const d = NOISE.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+}
+function setP(param, v) { param.setTargetAtTime(v, AC.currentTime, 0.04); }
+function applyMix(m) {
+  if (!AC || !N) return;
+  GROUPS.forEach(g => {
+    const v = (m.vol[g.id] == null ? 70 : m.vol[g.id]) / 100;
+    setP(N.groups[g.id].vol.gain, m.mute[g.id] ? 0 : v * v * 1.15);
+  });
+  const lv = id => (isFree(FXI[id]) ? (m.fx[id] || 0) : 0);
+  const beat = 60 / m.tempo;
+  setP(N.revSend.gain, lv('hall') * 0.16);
+  setP(N.dlySend.gain, lv('echo') * 0.13);
+  setP(N.fb.gain, 0.22 + lv('echo') * 0.09);
+  N.dly.delayTime.setTargetAtTime(beat * 0.75, AC.currentTime, 0.05);
+  const r = lv('robot') / 4;
+  ['melody','voice'].forEach(gid => { setP(N.groups[gid].wet.gain, r * 1.1); setP(N.groups[gid].dry.gain, 1 - r * 0.8); });
+  N.ring.frequency.setTargetAtTime(55 + lv('robot') * 15, AC.currentTime, 0.05);
+  const wb = lv('wobble');
+  N.tremLfo.frequency.setTargetAtTime(2 / beat, AC.currentTime, 0.05);
+  setP(N.tremDepth.gain, wb * 0.12);
+  setP(N.trem.gain, 1 - wb * 0.1);
+  const bb = lv('bubble');
+  if (bb) {
+    const base = 2600 - bb * 450;
+    setP(N.filt.frequency, base); setP(N.filtDepth.gain, base * 0.6); setP(N.filt.Q, 7);
+    N.filtLfo.frequency.setTargetAtTime(1 / beat / 2, AC.currentTime, 0.05);
+  } else {
+    setP(N.filt.frequency, 20000); setP(N.filtDepth.gain, 0); setP(N.filt.Q, 0.7);
+  }
+}
+
+// Bausteine
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+function noteOf(w, d) {
+  const iv = w.scale === 'maj' ? [0,2,4,7,9] : [0,3,5,7,10];
+  return w.root + 12 * Math.floor((d - 1) / 5) + iv[(d - 1) % 5];
+}
+function O(type, f, t, stop) { const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(stop); return o; }
+function Nz(t, stop) { const s = AC.createBufferSource(); s.buffer = NOISE; s.loop = true; s.start(t, Math.random() * 0.5); s.stop(stop); return s; }
+function Gn() { return AC.createGain(); }
+function F(type, f, q) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; }
+function env(g, t, a, peak, dec) {
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec);
+}
+function chain() { const a = arguments; for (let i = 0; i < a.length - 1; i++) a[i].connect(a[i + 1]); return a[a.length - 1]; }
+
+const SOUNDS = {
+  kick(t, f, out, v) { const o = O('sine', 150, t, t + 0.5); o.frequency.exponentialRampToValueAtTime(42, t + 0.13); const g = Gn(); env(g, t, 0.003, 1.1 * v, 0.4); chain(o, g, out); },
+  snare(t, f, out, v) {
+    const n = Nz(t, t + 0.25), g = Gn(); env(g, t, 0.002, 0.55 * v, 0.18); chain(n, F('highpass', 1500), g, out);
+    const o = O('triangle', 190, t, t + 0.15); o.frequency.exponentialRampToValueAtTime(120, t + 0.1); const g2 = Gn(); env(g2, t, 0.002, 0.45 * v, 0.1); chain(o, g2, out);
+  },
+  hat(t, f, out, v) { const n = Nz(t, t + 0.1), g = Gn(); env(g, t, 0.002, 0.28 * v, 0.05); chain(n, F('highpass', 7500), g, out); },
+  clap(t, f, out, v) {
+    const n = Nz(t, t + 0.3), g = Gn(); g.gain.setValueAtTime(0.0001, t);
+    for (let k = 0; k < 3; k++) { const s = t + k * 0.012; g.gain.setValueAtTime(0.7 * v, s); g.gain.exponentialRampToValueAtTime(0.06, s + 0.01); }
+    g.gain.setValueAtTime(0.7 * v, t + 0.036); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+    chain(n, F('bandpass', 1400, 1.2), g, out);
+  },
+  bongo(t, f, out, v) { const o = O('sine', f, t, t + 0.3); o.frequency.exponentialRampToValueAtTime(f * 0.75, t + 0.12); const g = Gn(); env(g, t, 0.002, 0.75 * v, 0.2); chain(o, g, out); },
+  crash(t, f, out, v) { const n = Nz(t, t + 1.6), g = Gn(); env(g, t, 0.002, 0.32 * v, 1.4); chain(n, F('highpass', 5000), g, out); },
+  brumm(t, f, out, v) { const o = O('sawtooth', f, t, t + 0.5), lp = F('lowpass', 1400); lp.frequency.setValueAtTime(1400, t); lp.frequency.exponentialRampToValueAtTime(260, t + 0.25); const g = Gn(); env(g, t, 0.005, 0.6 * v, 0.35); chain(o, lp, g, out); },
+  wobbel(t, f, out, v) { const o = O('square', f, t, t + 0.5), lp = F('lowpass', 300, 8); lp.frequency.setValueAtTime(300, t); lp.frequency.linearRampToValueAtTime(2000, t + 0.1); lp.frequency.linearRampToValueAtTime(300, t + 0.3); const g = Gn(); env(g, t, 0.005, 0.45 * v, 0.35); chain(o, lp, g, out); },
+  tief(t, f, out, v) { const o = O('sine', f, t, t + 0.9), g = Gn(); env(g, t, 0.01, 0.95 * v, 0.7); chain(o, g, out); const o2 = O('triangle', f * 2, t, t + 0.3), g2 = Gn(); env(g2, t, 0.005, 0.15 * v, 0.2); chain(o2, g2, out); },
+  groove(t, f, out, v) { const o = O('triangle', f, t, t + 0.4), o2 = O('square', f, t, t + 0.4), m = Gn(); m.gain.value = 0.3; const lp = F('lowpass', 900), g = Gn(); env(g, t, 0.003, 0.7 * v, 0.24); o.connect(lp); chain(o2, m, lp); chain(lp, g, out); },
+  tuba(t, f, out, v) { const o = O('sawtooth', f, t, t + 0.7), lp = F('lowpass', 450, 2), g = Gn(); env(g, t, 0.045, 0.6 * v, 0.45); chain(o, lp, g, out); },
+  hopp(t, f, out, v) { const o = O('square', f * 2, t, t + 0.3); o.frequency.exponentialRampToValueAtTime(f, t + 0.06); const g = Gn(); env(g, t, 0.003, 0.45 * v, 0.18); chain(o, F('lowpass', 1300), g, out); },
+  piano(t, f, out, v) { const o = O('triangle', f, t, t + 1.2), o2 = O('sine', f * 2, t, t + 0.6), m = Gn(); m.gain.value = 0.3; const g = Gn(); env(g, t, 0.004, 0.5 * v, 0.9); o.connect(g); chain(o2, m, g); g.connect(out); },
+  bell(t, f, out, v) {
+    const c = O('sine', f, t, t + 1.9), mo = O('sine', f * 3.5, t, t + 1.9), mg = Gn();
+    mg.gain.setValueAtTime(f * 2, t); mg.gain.exponentialRampToValueAtTime(1, t + 1.2);
+    chain(mo, mg, c.frequency); const g = Gn(); env(g, t, 0.002, 0.32 * v, 1.6); chain(c, g, out);
+  },
+  flute(t, f, out, v, len) {
+    const dur = Math.max(0.3, len * 1.7), o = O('sine', f, t, t + dur + 0.05);
+    const vib = O('sine', 5.5, t, t + dur + 0.05), vg = Gn(); vg.gain.value = f * 0.012; chain(vib, vg, o.frequency);
+    const g = Gn(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.36 * v, t + 0.06); g.gain.setValueAtTime(0.36 * v, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    chain(o, g, out);
+    const n = Nz(t, t + 0.12), ng = Gn(); env(ng, t, 0.01, 0.05 * v, 0.08); chain(n, F('bandpass', f * 2, 2), ng, out);
+  },
+  synth(t, f, out, v) { const a = O('sawtooth', f * 0.996, t, t + 0.5), b = O('sawtooth', f * 1.004, t, t + 0.5), lp = F('lowpass', 3000, 3); lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(800, t + 0.3); const g = Gn(); env(g, t, 0.005, 0.25 * v, 0.32); a.connect(lp); b.connect(lp); chain(lp, g, out); },
+  xylo(t, f, out, v) { const o = O('sine', f, t, t + 0.5), o2 = O('sine', f * 4, t, t + 0.15), g = Gn(), g2 = Gn(); env(g, t, 0.001, 0.5 * v, 0.32); env(g2, t, 0.001, 0.18 * v, 0.07); chain(o, g, out); chain(o2, g2, out); },
+  guitar(t, f, out, v) { const o = O('sawtooth', f, t, t + 0.9), lp = F('lowpass', 3500, 1); lp.frequency.setValueAtTime(3500, t); lp.frequency.exponentialRampToValueAtTime(380, t + 0.45); const g = Gn(); env(g, t, 0.002, 0.42 * v, 0.75); chain(o, lp, g, out); },
+  harp(t, f, out, v) { const o = O('triangle', f, t, t + 1.4), o2 = O('sine', f * 2, t, t + 0.7), m = Gn(); m.gain.value = 0.25; const g = Gn(); env(g, t, 0.008, 0.42 * v, 1.2); o.connect(g); chain(o2, m, g); g.connect(out); },
+  hey(t, f, out, v) {
+    const o = O('sawtooth', 240, t, t + 0.3); o.frequency.exponentialRampToValueAtTime(175, t + 0.2);
+    const g = Gn(); env(g, t, 0.012, 1.4 * v, 0.2);
+    const b1 = F('bandpass', 800, 5), b2 = F('bandpass', 1250, 5);
+    o.connect(b1); o.connect(b2); b1.connect(g); b2.connect(g); g.connect(out);
+    const n = Nz(t, t + 0.08), ng = Gn(); env(ng, t, 0.003, 0.2 * v, 0.05); chain(n, F('bandpass', 2600, 1), ng, out);
+  },
+  uuh(t, f, out, v, len) {
+    const dur = Math.max(0.5, len * 3.2), o = O('triangle', f * 0.85, t, t + dur + 0.05);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.15);
+    const vib = O('sine', 5, t, t + dur), vg = Gn(); vg.gain.value = f * 0.02; chain(vib, vg, o.frequency);
+    const g = Gn(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.6 * v, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    chain(o, F('lowpass', 750, 2), g, out);
+  },
+  zisch(t, f, out, v, len) {
+    const dur = Math.max(0.6, len * 4), n = Nz(t, t + dur + 0.05), bp = F('bandpass', 400, 2);
+    bp.frequency.setValueAtTime(400, t); bp.frequency.exponentialRampToValueAtTime(8000, t + dur);
+    const g = Gn(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.5 * v, t + dur * 0.95); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    chain(n, bp, g, out);
+  },
+  piep(t, f, out, v) { const o = O('square', f, t, t + 0.15), g = Gn(); env(g, t, 0.002, 0.16 * v, 0.09); chain(o, g, out); },
+  meow(t, f, out, v) {
+    const o = O('sawtooth', 520, t, t + 0.55); o.frequency.linearRampToValueAtTime(760, t + 0.13); o.frequency.linearRampToValueAtTime(560, t + 0.45);
+    const bp = F('bandpass', 800, 5); bp.frequency.setValueAtTime(800, t); bp.frequency.linearRampToValueAtTime(1600, t + 0.13); bp.frequency.linearRampToValueAtTime(900, t + 0.45);
+    const g = Gn(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1.1 * v, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    chain(o, bp, g, out);
+  },
+  woof(t, f, out, v) {
+    const o = O('sawtooth', 190, t, t + 0.25); o.frequency.exponentialRampToValueAtTime(95, t + 0.15);
+    const g = Gn(); env(g, t, 0.005, 1.0 * v, 0.15); chain(o, F('lowpass', 750, 3), g, out);
+    const n = Nz(t, t + 0.1), ng = Gn(); env(ng, t, 0.003, 0.3 * v, 0.06); chain(n, F('bandpass', 600, 1), ng, out);
+  },
+  laser(t, f, out, v) { const o = O('square', 1800, t, t + 0.35); o.frequency.exponentialRampToValueAtTime(120, t + 0.28); const g = Gn(); env(g, t, 0.002, 0.22 * v, 0.28); chain(o, F('lowpass', 3200), g, out); }
+};
+
+/* ---------- Ablauf (Sequenzer) ---------- */
+const SEQ = {playing:false, mix:null, source:null, songId:null, step:0, next:0, timer:null, queue:[], vis:-1};
+function startSeq(mix, source, songId) {
+  const c = audio(); if (!c) return;
+  SEQ.mix = mix; SEQ.source = source; SEQ.songId = songId || null;
+  applyMix(mix);
+  SEQ.step = 0; SEQ.next = c.currentTime + 0.06; SEQ.queue = []; SEQ.vis = -1; SEQ.playing = true;
+  clearInterval(SEQ.timer); SEQ.timer = setInterval(tick, 25); tick();
+  requestAnimationFrame(draw);
+}
+function stopSeq() {
+  SEQ.playing = false; clearInterval(SEQ.timer); SEQ.queue = []; SEQ.vis = -1; SEQ.songId = null; SEQ.source = null;
+  showStep(-1);
+}
+function tick() {
+  if (!SEQ.playing) return;
+  const m = SEQ.mix, len = 60 / m.tempo / 2;
+  while (SEQ.next < AC.currentTime + 0.12) {
+    playStep(m, SEQ.step, SEQ.next, len);
+    SEQ.queue.push({s:SEQ.step, t:SEQ.next});
+    SEQ.next += len;
+    SEQ.step = (SEQ.step + 1) % 8;
+    if (SEQ.step === 0) onLoop();
+  }
+}
+function playStep(m, s, t, len) {
+  const w = WORLD[m.world] || WORLDS[0];
+  m.active.forEach(id => {
+    const p = PAD[id]; if (!p || !isFree(p)) return;
+    const d = patOf(m, id)[s]; if (!d) return;
+    const f = mtof(noteOf(w, d) + (p.oct || 0));
+    const v = id === 'hat' && s % 2 ? 0.55 : 1;
+    try { SOUNDS[id](t, f, N.groups[p.g].in, v, len); } catch (e) {}
+  });
+}
+function draw() {
+  if (!SEQ.playing) return;
+  let s = null;
+  while (SEQ.queue.length && SEQ.queue[0].t <= AC.currentTime) s = SEQ.queue.shift().s;
+  if (s !== null && s !== SEQ.vis) { SEQ.vis = s; showStep(s); }
+  requestAnimationFrame(draw);
+}
+function showStep(s) {
+  const edit = SEQ.playing && SEQ.source === 'edit';
+  $$('.segs i').forEach((el, i) => el.classList.toggle('lit', edit && i <= s));
+  $$('.cell').forEach(el => el.classList.toggle('head', edit && +el.dataset.i === s));
+  $$('.bnums div').forEach((el, i) => el.classList.toggle('head', edit && i === s));
+  if (edit && s >= 0) {
+    S.edit.active.forEach(id => {
+      if (!patOf(S.edit, id)[s]) return;
+      const el = document.querySelector('.pad[data-id="' + id + '"]');
+      if (el) { el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
+    });
+  }
+}
+function onLoop() {
+  S.stats.loops++;
+  if (SEQ.source === 'edit' && S.edit.active.length) {
+    if (!S.stats.worlds.includes(S.edit.world)) S.stats.worlds.push(S.edit.world);
+    if (S.edit.active.length >= 3) {
+      S.loopCount++;
+      if (S.loopCount >= 8) {
+        S.loopCount = 0;
+        if (S.activity) { S.activity = false; addStars(1, 'Fleißig gemischt!'); }
+      }
+    }
+  }
+  checkAch(); persist();
+}
+function playEdit() { startSeq(S.edit, 'edit'); render(); }
+function toggleEditPlay() {
+  if (SEQ.playing && SEQ.source === 'edit') stopSeq();
+  else {
+    if (!S.edit.active.length) { toast('Tippe zuerst ein paar bunte Knöpfe an!'); UI.tab = 'studio'; render(true); return; }
+    startSeq(S.edit, 'edit');
+  }
+  render();
+}
+function preview(id) {
+  const c = audio(); if (!c) return;
+  const p = PAD[id], w = WORLD[S.edit.world] || WORLDS[0], len = 60 / 110 / 2;
+  [0,1,2,3].forEach(k => {
+    if (!p.pitched && k % 2) return;
+    const d = p.pitched ? [1,3,5,8][k] : 1;
+    SOUNDS[id](c.currentTime + 0.05 + k * len * 1.2, mtof(noteOf(w, d) + (p.oct || 0)), N.bus, 1, len);
+  });
+}
+
+/* ---------- Sterne, Erfolge, Level ---------- */
+function addStars(n, why) {
+  const before = levelIdx(S.total);
+  S.stars += n; S.total += n;
+  toast(why + ' <span class="st">+' + n + '</span>', true);
+  updateStars();
+  persist();
+  const after = levelIdx(S.total);
+  if (after > before) setTimeout(() => levelUp(after), 900);
+}
+function checkAch() {
+  ACH.forEach(a => {
+    if (!S.ach[a.id] && a.ok()) { S.ach[a.id] = Date.now(); addStars(a.r, 'Erfolg: ' + a.t); }
+  });
+}
+function updateStars() {
+  $$('.stars-n').forEach(el => { el.textContent = S.stars; const b = el.closest('.stars'); if (b) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } });
+  const badge = $('#nav .badge'); const want = canBuySomething();
+  if (!!badge !== want) renderNav();
+}
+function levelUp(i) {
+  confetti();
+  modal(`<div class="big-ic" style="background:var(--lila)">${ICON.trophy(38)}</div>
+    <div class="center"><div class="h1">Level ${i + 1}!</div><div class="mut" style="margin-top:6px">Du bist jetzt <b style="color:var(--txt)">${LEVELS[i].n}</b>. Super gemacht!</div></div>
+    <button class="btn yel" data-act="closemodal">Juhu!</button>`);
+}
+function canBuySomething() {
+  return [...PADS, ...FX, ...WORLDS].some(x => x.cost && !owns(x.id) && S.stars >= x.cost);
+}
+function takeGift() {
+  if (S.gift === today()) return;
+  S.gift = today(); addStars(5, 'Tagesgeschenk'); confetti(); render();
+}
+
+/* ---------- Aktionen ---------- */
+const UI = {tab:'start'};
+let pendingConfirm = null;
+let installPrompt = null;
+
+function markEdit() { S.dirty = true; S.activity = true; persist(); }
+function togglePad(id) {
+  const m = S.edit, i = m.active.indexOf(id);
+  if (i >= 0) m.active.splice(i, 1); else m.active.push(id);
+  S.stats.maxActive = Math.max(S.stats.maxActive, m.active.length);
+  markEdit();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
+  if (i < 0 && !(SEQ.playing && SEQ.source === 'edit')) startSeq(S.edit, 'edit');
+  if (!m.active.length && SEQ.source === 'edit') stopSeq();
+  checkAch(); render();
+}
+function cycleTempo() {
+  const m = S.edit, nx = TEMPOS.find(t => t.v > m.tempo) || TEMPOS[0];
+  m.tempo = nx.v; if (nx.v >= 150) S.stats.turbo = true;
+  markEdit(); if (SEQ.mix === m) applyMix(m); checkAch(); render();
+}
+function toggleCell(id, i) {
+  const p = PAD[id], m = S.edit;
+  const pat = m.patterns[id] || (m.patterns[id] = p.pat.slice());
+  pat[i] = pat[i] ? 0 : (p.pitched ? (p.pat[i] || FALLBACK[i]) : 1);
+  S.stats.steps++; markEdit(); checkAch(); render();
+}
+function clearPatterns() {
+  S.edit.active.forEach(id => { S.edit.patterns[id] = [0,0,0,0,0,0,0,0]; });
+  markEdit(); render();
+}
+function resetPatterns() {
+  S.edit.active.forEach(id => { delete S.edit.patterns[id]; });
+  markEdit(); render();
+}
+function randomPatterns() {
+  S.edit.active.forEach(id => {
+    const p = PAD[id], g = p.g;
+    const prob = id === 'hat' ? 0.75 : g === 'drums' ? 0.35 : g === 'voice' ? 0.18 : 0.45;
+    const pat = [];
+    for (let i = 0; i < 8; i++) pat.push(Math.random() < prob ? (p.pitched ? 1 + Math.floor(Math.random() * 8) : 1) : 0);
+    if (id === 'kick') pat[0] = 1;
+    if (p.g === 'bass') pat[0] = 1;
+    S.edit.patterns[id] = pat;
+  });
+  S.stats.steps += 2; markEdit(); checkAch(); render();
+}
+function toggleMute(g) { S.edit.mute[g] = !S.edit.mute[g]; markEdit(); if (SEQ.mix === S.edit) applyMix(S.edit); render(); }
+function tapFx(id) {
+  const f = FXI[id];
+  if (!isFree(f)) return unlockModal('fx', id);
+  S.edit.fx[id] = ((S.edit.fx[id] || 0) + 1) % 5;
+  S.stats.fx = true; markEdit();
+  if (SEQ.mix === S.edit) applyMix(S.edit);
+  else if (S.edit.active.length && S.edit.fx[id]) startSeq(S.edit, 'edit');
+  checkAch(); render();
+}
+function pickWorld(id) {
+  const w = WORLD[id];
+  if (!isFree(w)) return unlockModal('world', id);
+  const m = S.edit;
+  if (m.world === id) { UI.tab = 'studio'; render(true); return; }
+  m.world = id; if (!m.active.length) m.tempo = w.tempo;
+  markEdit(); if (SEQ.mix === m) applyMix(m);
+  toast('Klangwelt: ' + w.name);
+  render();
+}
+function guard(fn) {
+  if (S.dirty && S.edit.active.length) {
+    pendingConfirm = fn;
+    modal(`<div class="h2">Dein Mix ist noch nicht gespeichert</div>
+      <div class="mut">Wenn du weitermachst, geht er verloren. Möchtest du ihn vorher speichern?</div>
+      <button class="btn yel" data-act="save">${ICON.save(20)} Erst speichern</button>
+      <button class="btn ghost" data-act="confirm">Trotzdem weiter</button>
+      <button class="btn dark" data-act="closemodal">Abbrechen</button>`);
+  } else fn();
+}
+function startNewMix() {
+  guard(() => {
+    if (SEQ.source === 'edit') stopSeq();
+    S.edit = newMix(S.edit.world); S.dirty = false; persist();
+    UI.tab = 'studio'; render(true);
+  });
+}
+function suggestName(world) {
+  const list = NAMES[world] || NAMES.jungle;
+  const base = list[Math.floor(Math.random() * list.length)];
+  let name = base, k = 2;
+  while (S.songs.some(s => s.name === name)) name = base + ' ' + (k++);
+  return name;
+}
+function saveModal() {
+  const m = S.edit;
+  if (!m.active.length) { closeModal(); toast('Schalte erst ein paar Klänge an!'); return; }
+  const name = m.name || suggestName(m.world);
+  modal(`<div class="h2">Mix speichern</div>
+    <div class="field"><label for="songname">Wie soll dein Lied heißen?</label>
+    <input id="songname" maxlength="24" value="${esc(name)}" autocomplete="off" enterkeyhint="done"></div>
+    <button class="btn yel" data-act="dosave">${ICON.save(20)} Speichern</button>
+    ${m.id ? `<button class="btn ghost" data-act="dosave" data-new="1">${ICON.plus(20)} Als neuen Mix speichern</button>` : ''}
+    <button class="btn dark" data-act="closemodal">Abbrechen</button>`);
+}
+function doSave(asNew) {
+  const inp = $('#songname'); const m = S.edit;
+  let name = (inp && inp.value.trim()) || suggestName(m.world);
+  name = name.slice(0, 24);
+  const isNew = !m.id || asNew;
+  if (isNew) m.id = 's' + Date.now().toString(36);
+  m.name = name; m.updated = Date.now();
+  const copy = clone(m);
+  const at = S.songs.findIndex(s => s.id === m.id);
+  if (at >= 0) S.songs[at] = copy; else S.songs.unshift(copy);
+  S.dirty = false;
+  closeModal();
+  const after = pendingConfirm; pendingConfirm = null;
+  if (isNew && m.active.length >= 3) {
+    if (S.saveDay.d !== today()) S.saveDay = {d:today(), n:0};
+    if (S.saveDay.n < 5) { S.saveDay.n++; addStars(3, 'Lied gespeichert!'); }
+    else toast('Gespeichert! (Heute gibt es dafür keine Sterne mehr.)');
+  } else toast('Gespeichert: ' + esc(name));
+  checkAch(); persist(); render();
+  if (after) after();
+}
+function listen(id) {
+  if (SEQ.playing && SEQ.songId === id) { stopSeq(); render(); return; }
+  const s = S.songs.find(x => x.id === id); if (!s) return;
+  startSeq(clone(s), 'song', id);
+  S.stats.listened = true; checkAch(); closeModal(); render();
+}
+function songMenu(id) {
+  const s = S.songs.find(x => x.id === id); if (!s) return;
+  const w = WORLD[s.world] || WORLDS[0], playing = SEQ.playing && SEQ.songId === id;
+  modal(`<div class="row gap12"><div class="song-ic" style="background:${w.color}"><i></i><i></i><i></i><i></i></div>
+    <div class="grow"><div class="h2 ellip">${esc(s.name)}</div><div class="mut sm">${w.name} · ${s.active.length} Klänge · ${tempoName(s.tempo)}</div></div></div>
+    <button class="btn yel" data-act="listen" data-id="${s.id}">${playing ? ICON.stop(20) + ' Stopp' : ICON.play(20) + ' Anhören'}</button>
+    <button class="btn ghost" data-act="editsong" data-id="${s.id}">${ICON.pencil(20)} Weiter bearbeiten</button>
+    <div class="field"><label for="rename">Neuer Name</label>
+      <div class="row gap8"><input id="rename" class="grow" maxlength="24" value="${esc(s.name)}" autocomplete="off" style="min-width:0">
+      <button class="btn ghost small" data-act="rename" data-id="${s.id}">Ändern</button></div></div>
+    <button class="btn dark" data-act="delsong" data-id="${s.id}" style="color:var(--red)">${ICON.trash(20)} Löschen</button>`);
+}
+function renameSong(id) {
+  const s = S.songs.find(x => x.id === id), v = ($('#rename').value || '').trim().slice(0, 24);
+  if (!s || !v) return;
+  s.name = v; if (S.edit.id === id) S.edit.name = v;
+  persist(); closeModal(); toast('Umbenannt'); render();
+}
+function editSong(id) {
+  const s = S.songs.find(x => x.id === id); if (!s) return;
+  closeModal();
+  const open = () => {
+    if (SEQ.playing) stopSeq();
+    S.edit = clone(s); S.dirty = false; persist();
+    UI.tab = 'studio'; render(true);
+  };
+  if (S.edit.id === id) open(); else guard(open);
+}
+function confirmDelete(id) {
+  const s = S.songs.find(x => x.id === id); if (!s) return;
+  modal(`<div class="h2">„${esc(s.name)}“ löschen?</div><div class="mut">Das Lied ist danach für immer weg.</div>
+    <button class="btn yel" data-act="dodel" data-id="${id}" style="background:var(--red)">${ICON.trash(20)} Ja, löschen</button>
+    <button class="btn ghost" data-act="closemodal">Nein, behalten</button>`);
+}
+function deleteSong(id) {
+  if (SEQ.songId === id) stopSeq();
+  S.songs = S.songs.filter(s => s.id !== id);
+  if (S.edit.id === id) { S.edit.id = null; S.dirty = true; }
+  persist(); closeModal(); toast('Gelöscht'); render();
+}
+function itemOf(kind, id) { return kind === 'pad' ? PAD[id] : kind === 'fx' ? FXI[id] : WORLD[id]; }
+function kindName(kind, item) { return kind === 'pad' ? G[item.g].name : kind === 'fx' ? 'Zauber-Effekt' : 'Klangwelt'; }
+function itemColor(kind, item) { return kind === 'pad' ? G[item.g].color : item.color; }
+function unlockModal(kind, id) {
+  const it = itemOf(kind, id); if (!it) return;
+  const enough = S.stars >= it.cost, miss = it.cost - S.stars;
+  modal(`<div class="big-ic" style="background:${itemColor(kind, it)}">${kind === 'world' ? ICON.world[id](36) : kind === 'fx' ? ICON.fx(36) : ICON.note(36)}</div>
+    <div class="center"><div class="h1">${esc(it.label || it.name)}</div><div class="mut sm" style="margin-top:4px">${kindName(kind, it)}</div></div>
+    ${kind === 'pad' ? `<button class="btn ghost" data-act="preview" data-id="${id}">${ICON.ear(20)} Probehören</button>` : ''}
+    ${enough
+      ? `<button class="btn yel" data-act="dounlock" data-kind="${kind}" data-id="${id}">Für ${ICON.star(18)} ${it.cost} freischalten</button>`
+      : `<div class="card center" style="background:var(--bg)"><div class="b">Dir fehlen noch ${miss} ${miss === 1 ? 'Stern' : 'Sterne'}</div><div class="mut sm" style="margin-top:4px">Mische Lieder, speichere sie und schaffe Erfolge!</div></div>`}
+    <button class="btn dark" data-act="closemodal">${enough ? 'Später' : 'Okay'}</button>`);
+}
+function doUnlock(kind, id) {
+  const it = itemOf(kind, id);
+  if (!it || owns(id) || S.stars < it.cost) return;
+  S.stars -= it.cost; S.unlocked.push(id);
+  closeModal(); confetti();
+  toast(esc(it.label || it.name) + ' freigeschaltet!');
+  updateStars(); checkAch(); persist(); render();
+}
+async function doInstall() {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  try { await installPrompt.userChoice; } catch (e) {}
+  installPrompt = null; render();
+}
+
+/* ---------- Oberfläche ---------- */
+const starPill = () => `<button class="stars" data-act="tab" data-tab="shop" aria-label="${S.stars} Sterne – zur Schatzkiste">${ICON.star(20)}<span class="stars-n">${S.stars}</span></button>`;
+
+function viewStart() {
+  const li = levelIdx(S.total), lv = LEVELS[li], nx = LEVELS[li + 1];
+  const pct = nx ? Math.round((S.total - lv.at) / (nx.at - lv.at) * 100) : 100;
+  const giftOpen = S.gift !== today();
+  const songs = S.songs.map(s => {
+    const w = WORLD[s.world] || WORLDS[0], pl = SEQ.playing && SEQ.songId === s.id;
+    return `<div class="song${pl ? ' playing' : ''}">
+      <button class="song-main" data-act="songmenu" data-id="${s.id}" aria-label="${esc(s.name)} – Optionen">
+        <span class="song-ic" style="background:${w.color}"><i></i><i></i><i></i><i></i></span>
+        <span class="grow"><span class="b ellip" style="display:block">${esc(s.name)}</span><span class="mut sm">${w.name} · ${s.active.length} Klänge</span></span>
+      </button>
+      <button class="ic-btn light" data-act="listen" data-id="${s.id}" aria-label="${pl ? 'Stopp' : esc(s.name) + ' anhören'}">${pl ? ICON.stop(18) : ICON.play(18)}</button>
+    </div>`;
+  }).join('');
+  const worlds = WORLDS.map(w => {
+    const free = isFree(w), sel = S.edit.world === w.id;
+    return `<button class="world${free ? '' : ' locked'}${sel && free ? ' sel' : ''}" data-act="world" data-id="${w.id}" style="background:${w.color}" aria-pressed="${sel}">
+      ${free ? ICON.world[w.id](30) : ICON.lock(28)}
+      ${free ? (sel ? '<span class="tag">Gewählt</span>' : '') : `<span class="tag cost" style="color:var(--yel)">${ICON.star(12)} ${w.cost}</span>`}
+      <span class="world-n">${w.name}</span></button>`;
+  }).join('');
+  return `
+  <header class="top"><div class="logo"><span class="logo-ic">${ICON.note(26)}</span>Klangkiste</div>${starPill()}</header>
+  <div class="card level"><div class="lvl-badge"><small>LEVEL</small>${li + 1}</div>
+    <div class="grow"><div class="b">${lv.n}</div><div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="mut xs">${nx ? 'Noch ' + (nx.at - S.total) + ' Sterne bis „' + nx.n + '“' : 'Höchstes Level erreicht!'}</div></div></div>
+  ${giftOpen ? `<button class="gift" data-act="gift">${ICON.gift(34)}<span class="grow"><span class="b" style="display:block;font-size:17px">Tagesgeschenk!</span><span class="sm" style="font-weight:700">Tippe hier für 5 Sterne</span></span></button>` : ''}
+  <div class="card hero">
+    <div class="hero-deco" aria-hidden="true"><i style="background:#FF6B57"></i><i style="background:#4D9FFF"></i><i style="background:#FFC93C"></i><i style="background:#3EE0A8"></i><i style="background:#FF7AC6"></i><i style="background:#FF6B57"></i></div>
+    <div class="hero-t">Lass uns Musik bauen!</div>
+    <div class="hero-s">Tippe bunte Klang-Knöpfe an und mische sie zu deinem eigenen Lied.</div>
+    <div class="row gap10" style="flex-wrap:wrap">
+      <button class="btn yel" data-act="newmix">${ICON.plus(20)} Neuer Mix</button>
+      ${S.edit.active.length ? `<button class="btn ghost" data-act="tab" data-tab="studio" style="background:var(--bg)">Weiter mixen</button>` : ''}
+    </div>
+  </div>
+  ${installPrompt ? `<button class="btn mint" data-act="install">${ICON.install(20)} Als App installieren</button>` : ''}
+  <section class="col gap12"><div class="row" style="justify-content:space-between;align-items:baseline"><div class="h2">Klangwelt wählen</div>
+    <div class="mut sm">${WORLDS.filter(isFree).length} von ${WORLDS.length} frei</div></div>
+    <div class="worlds">${worlds}</div></section>
+  <section class="col gap10"><div class="h2">Meine Lieder</div>
+    ${songs || '<div class="empty">Noch keine Lieder gespeichert.<br>Bau einen Mix im Studio und tippe auf <b>Speichern</b>.</div>'}</section>`;
+}
+
+function padHtml(p) {
+  const g = G[p.g];
+  if (!isFree(p)) return `<button class="pad locked" data-act="unlock" data-kind="pad" data-id="${p.id}" aria-label="${p.label}, gesperrt, ${p.cost} Sterne">${ICON.lock(18)}<span>${p.label}</span><span class="cost">${ICON.star(12)}${p.cost}</span></button>`;
+  const on = S.edit.active.includes(p.id);
+  return `<button class="pad${on ? ' on' : ''}" data-act="pad" data-id="${p.id}" aria-pressed="${on}" style="--c:${g.color};--g:${g.glow}"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="dot" aria-hidden="true"></span>${p.label}</button>`;
+}
+function viewStudio() {
+  const m = S.edit, w = WORLD[m.world] || WORLDS[0];
+  return `
+  <header class="top"><div class="grow"><div class="h1 ellip">${esc(m.name || 'Neuer Mix')}</div>
+    <div class="mut sm">Klangwelt ${w.name}${S.dirty && m.active.length ? ' · nicht gespeichert' : ''}</div></div>
+    <button class="tempo" data-act="tempo" aria-label="Tempo ${tempoName(m.tempo)}, tippen zum Ändern"><div class="v">${m.tempo}</div><div class="n">${tempoName(m.tempo)}</div></button>
+    ${starPill()}</header>
+  <div class="segs" aria-hidden="true">${'<i></i>'.repeat(8)}</div>
+  ${GROUPS.map(g => `<section><div class="grp-h"><span class="dotc" style="background:${g.color}"></span><span class="b">${g.name}</span></div>
+    <div class="pads">${PADS.filter(p => p.g === g.id).map(padHtml).join('')}</div></section>`).join('')}`;
+}
+function dockStudio() {
+  const on = SEQ.playing && SEQ.source === 'edit', n = S.edit.active.length;
+  return `<div class="dock-row">
+    <button class="bigplay${on ? ' on' : ''}" data-act="play" aria-label="${on ? 'Pause' : 'Abspielen'}">${on ? ICON.pause(28) : ICON.play(28)}</button>
+    <div class="grow"><div class="b">${n === 0 ? 'Noch Stille' : n === 1 ? '1 Klang spielt mit' : n + ' Klänge spielen mit'}</div><div class="mut sm">Knopf antippen: an oder aus</div></div>
+    <button class="btn mint small" data-act="save" style="min-height:52px">${ICON.save(20)} Speichern</button></div>`;
+}
+function viewRaster() {
+  const m = S.edit;
+  const tracks = PADS.filter(p => m.active.includes(p.id));
+  const head = `<header class="top"><div class="grow"><div class="h1">Beat-Raster</div><div class="mut sm">Wann spielt welcher Klang?</div></div>${starPill()}</header>`;
+  if (!tracks.length) return head + `<div class="empty">Hier siehst du deine Klänge, sobald du im Studio welche angeschaltet hast.</div>
+    <button class="btn yel" data-act="tab" data-tab="studio">${ICON.grid(20)} Zum Studio</button>`;
+  return head + `
+  <div class="bnums" aria-hidden="true">${[1,2,3,4,5,6,7,8].map(n => `<div>${n}</div>`).join('')}</div>
+  ${tracks.map(p => {
+    const g = G[p.g], pat = patOf(m, p.id);
+    return `<section><div class="track-h"><span class="sq" style="background:${g.color}"></span><span class="b">${p.label}</span><span class="mut xs">${g.short || g.name}</span></div>
+      <div class="cells" style="--c:${g.color};--g:${g.glow}">${pat.map((d, i) => `<button class="cell${d ? ' on' : ''}${i % 2 ? ' alt' : ''}" data-act="cell" data-id="${p.id}" data-i="${i}" aria-pressed="${!!d}" aria-label="${p.label}, Schlag ${i + 1}"></button>`).join('')}</div></section>`;
+  }).join('')}
+  <div class="row gap8">
+    <button class="btn ghost small grow" data-act="clear">${ICON.eraser(18)} Leeren</button>
+    <button class="btn ghost small grow" data-act="reset">${ICON.note(18)} Original</button>
+    <button class="btn outline small grow" data-act="random" style="--c:var(--mint)">${ICON.dice(18)} Zufall</button>
+  </div>`;
+}
+function dockPlayOnly() {
+  const on = SEQ.playing && SEQ.source === 'edit';
+  return `<div class="dock-row">
+    <button class="bigplay${on ? ' on' : ''}" data-act="play" aria-label="${on ? 'Pause' : 'Abspielen'}">${on ? ICON.pause(28) : ICON.play(28)}</button>
+    <div class="grow"><div class="b">${on ? 'Läuft…' : 'Pause'}</div><div class="mut sm">${esc(S.edit.name || 'Neuer Mix')}</div></div>
+    <button class="btn mint small" data-act="save" style="min-height:52px">${ICON.save(20)} Speichern</button></div>`;
+}
+function faderHtml(g) {
+  const m = S.edit, v = m.vol[g.id] == null ? 70 : m.vol[g.id], mu = !!m.mute[g.id];
+  return `<div class="fcol${mu ? ' muted' : ''}" style="--c:${g.color}">
+    <div class="fval" data-fv="${g.id}">${mu ? 0 : v}</div>
+    <div class="fader" data-fader="${g.id}" role="slider" tabindex="0" aria-label="Lautstärke ${g.short || g.name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}">
+      <div class="rail"><div class="fill" style="height:${v}%"></div><div class="thumb" style="bottom:calc(${v}% - 14px)"></div></div></div>
+    <button class="mute${mu ? ' off' : ''}" data-act="mute" data-g="${g.id}" aria-pressed="${mu}" aria-label="${g.short || g.name} ${mu ? 'wieder einschalten' : 'stumm schalten'}">${mu ? ICON.mute(20) : ICON.vol(20)}</button>
+    <div class="fname">${g.short || g.name}</div></div>`;
+}
+function viewMixer() {
+  const m = S.edit;
+  const knobs = FX.map(f => {
+    if (!isFree(f)) return `<button class="knob locked" data-act="fx" data-id="${f.id}" aria-label="${f.name}, gesperrt, ${f.cost} Sterne">
+      <span style="height:64px;display:flex;align-items:center">${ICON.lock(30)}</span><span class="b sm">${f.name}</span><span class="cost">${ICON.star(12)} ${f.cost}</span></button>`;
+    const lv = m.fx[f.id] || 0;
+    return `<button class="knob" data-act="fx" data-id="${f.id}" aria-label="${f.name}: ${lv ? 'Stufe ' + lv : 'aus'}, tippen zum Ändern">
+      <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="25" fill="none" stroke="#2E2A5A" stroke-width="7"/>
+      <circle cx="32" cy="32" r="25" fill="none" stroke="${f.color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(lv / 4 * 157).toFixed(1)} 157" transform="rotate(-90 32 32)"/>
+      <circle cx="32" cy="32" r="13" fill="${lv ? '#F5F3FF' : '#5A5590'}"/></svg>
+      <span class="b sm">${f.name}</span><span class="kl">${lv ? 'Stufe ' + lv : 'Aus'}</span></button>`;
+  }).join('');
+  return `
+  <header class="top"><div class="grow"><div class="h1">Mixer</div><div class="mut sm">Mach Klänge lauter oder leiser</div></div>${starPill()}</header>
+  <div class="card faders">${GROUPS.map(faderHtml).join('')}</div>
+  <section class="col gap10"><div class="h2">Zauber-Effekte</div><div class="mut sm" style="margin-top:-4px">Tippe mehrmals für mehr Zauber.</div>
+    <div class="fxgrid">${knobs}</div></section>`;
+}
+function shopItem(kind, it) {
+  const own = isFree(it), color = itemColor(kind, it);
+  const ic = kind === 'world' ? ICON.world[it.id](24) : kind === 'fx' ? ICON.fx(24) : ICON.note(24);
+  return `<div class="item${own ? ' own' : ''}"><span class="item-ic" style="background:${color}">${ic}</span>
+    <div class="grow"><div class="b">${esc(it.label || it.name)}</div><div class="mut sm">${kindName(kind, it)}</div></div>
+    ${kind === 'pad' ? `<button class="ic-btn" data-act="preview" data-id="${it.id}" aria-label="${it.label} probehören">${ICON.ear(20)}</button>` : ''}
+    ${own ? `<span class="owned">${ICON.check(18)} Deins</span>`
+      : `<button class="btn small ${S.stars >= it.cost ? 'yel' : 'ghost'}" data-act="unlock" data-kind="${kind}" data-id="${it.id}" style="${S.stars >= it.cost ? '' : 'background:var(--bg)'}">${ICON.star(16)} ${it.cost}</button>`}</div>`;
+}
+function viewShop() {
+  const pads = PADS.filter(p => p.cost), fx = FX.filter(f => f.cost), w = WORLDS.filter(x => x.cost);
+  const doneN = ACH.filter(a => S.ach[a.id]).length;
+  return `
+  <header class="top"><div class="grow"><div class="h1">Schatzkiste</div><div class="mut sm">Schalte neue Klänge frei</div></div>${starPill()}</header>
+  <div class="card col gap10"><div class="b">So sammelst du Sterne</div>
+    <div class="earn"><div><b>+5</b> Tagesgeschenk auf der Startseite</div><div><b>+3</b> ein neues Lied speichern (mind. 3 Klänge)</div>
+    <div><b>+1</b> fleißig mischen, während die Musik läuft</div><div><b>+2 bis +10</b> für jeden Erfolg</div></div></div>
+  <section class="col gap10"><div class="h2">Instrumente</div>${pads.map(p => shopItem('pad', p)).join('')}</section>
+  <section class="col gap10"><div class="h2">Zauber-Effekte</div>${fx.map(f => shopItem('fx', f)).join('')}</section>
+  <section class="col gap10"><div class="h2">Klangwelten</div>${w.map(x => shopItem('world', x)).join('')}</section>
+  <section class="col gap10"><div class="row" style="justify-content:space-between;align-items:baseline"><div class="h2">Erfolge</div><div class="mut sm">${doneN} von ${ACH.length}</div></div>
+    ${ACH.map(a => { const d = !!S.ach[a.id]; return `<div class="ach${d ? ' done' : ''}"><span class="ach-ic">${d ? ICON.check(20) : ICON.trophy(20)}</span>
+      <div class="grow"><div class="b">${a.t}</div><div class="mut sm">${a.d}</div></div><span class="cost">${ICON.star(14)} ${a.r}</span></div>`; }).join('')}</section>`;
+}
+
+function renderNav() {
+  const tabs = [['start','Start',ICON.home],['studio','Studio',ICON.grid],['raster','Raster',ICON.raster],['mixer','Mixer',ICON.mixer],['shop','Schätze',ICON.chest]];
+  const badge = canBuySomething();
+  $('#nav').innerHTML = tabs.map(([id, n, ic]) =>
+    `<button class="nav-btn${UI.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}" ${UI.tab === id ? 'aria-current="page"' : ''}>${ic(24)}${n}${id === 'shop' && badge ? '<span class="badge" aria-label="Du kannst etwas freischalten"></span>' : ''}</button>`).join('');
+}
+function render(resetScroll) {
+  const scr = $('#screen'), top = scr.scrollTop;
+  const v = {start:viewStart, studio:viewStudio, raster:viewRaster, mixer:viewMixer, shop:viewShop}[UI.tab] || viewStart;
+  scr.innerHTML = v();
+  $('#dock').innerHTML = UI.tab === 'studio' ? dockStudio() : (UI.tab === 'raster' || UI.tab === 'mixer') && S.edit.active.length ? dockPlayOnly() : '';
+  renderNav();
+  scr.scrollTop = resetScroll ? 0 : top;
+  if (SEQ.playing && SEQ.vis >= 0) showStep(SEQ.vis);
+}
+
+/* ---------- Dialoge, Meldungen, Konfetti ---------- */
+function modal(html) {
+  const el = $('#modal');
+  el.innerHTML = `<div class="scrim" data-act="closemodal"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  el.classList.add('open');
+  const f = el.querySelector('input') || el.querySelector('.sheet button');
+  if (f) setTimeout(() => { try { f.focus({preventScroll:true}); if (f.select) f.select(); } catch (e) {} }, 60);
+}
+function closeModal() { const el = $('#modal'); el.classList.remove('open'); el.innerHTML = ''; }
+function toast(html, star) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = (star ? `<span class="st">${ICON.star(18)}</span>` : '') + html;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+  while ($('#toasts').children.length > 3) $('#toasts').firstChild.remove();
+}
+function confetti() {
+  const box = $('#confetti'), cols = ['#FF6B57','#4D9FFF','#FFC93C','#3EE0A8','#FF7AC6','#B39DFF'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('i');
+    c.className = 'conf';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = cols[i % cols.length];
+    c.style.animationDelay = Math.random() * 0.5 + 's';
+    c.style.animationDuration = 1.4 + Math.random() * 0.8 + 's';
+    box.appendChild(c);
+    setTimeout(() => c.remove(), 3000);
+  }
+}
+
+/* ---------- Ereignisse ---------- */
+const ACT = {
+  tab: d => { UI.tab = d.tab; closeModal(); render(true); },
+  pad: d => togglePad(d.id),
+  unlock: d => unlockModal(d.kind, d.id),
+  dounlock: d => doUnlock(d.kind, d.id),
+  preview: d => preview(d.id),
+  play: () => toggleEditPlay(),
+  tempo: () => cycleTempo(),
+  save: () => saveModal(),
+  dosave: d => doSave(!!d.new),
+  cell: d => toggleCell(d.id, +d.i),
+  clear: () => clearPatterns(),
+  reset: () => resetPatterns(),
+  random: () => randomPatterns(),
+  mute: d => toggleMute(d.g),
+  fx: d => tapFx(d.id),
+  world: d => pickWorld(d.id),
+  newmix: () => startNewMix(),
+  gift: () => takeGift(),
+  listen: d => listen(d.id),
+  songmenu: d => songMenu(d.id),
+  editsong: d => editSong(d.id),
+  rename: d => renameSong(d.id),
+  delsong: d => confirmDelete(d.id),
+  dodel: d => deleteSong(d.id),
+  closemodal: () => { pendingConfirm = null; closeModal(); },
+  confirm: () => { const f = pendingConfirm; pendingConfirm = null; closeModal(); if (f) f(); },
+  install: () => doInstall()
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const f = ACT[el.dataset.act];
+  if (f) f(el.dataset, el);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'songname') { e.preventDefault(); doSave(false); }
+  if (e.key === 'Enter' && e.target.id === 'rename') { e.preventDefault(); const b = document.querySelector('[data-act="rename"]'); if (b) renameSong(b.dataset.id); }
+  if (e.key === 'Escape' && $('#modal').classList.contains('open')) { pendingConfirm = null; closeModal(); }
+  const fd = e.target.closest && e.target.closest('.fader');
+  if (fd && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    e.preventDefault();
+    const g = fd.dataset.fader, v = S.edit.vol[g] == null ? 70 : S.edit.vol[g];
+    setVol(g, clamp(v + (e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 5 : -5), 0, 100), fd);
+  }
+});
+// Schieberegler (Mixer)
+function setVol(gid, v, fd) {
+  S.edit.vol[gid] = v; markEdit();
+  if (SEQ.mix === S.edit) applyMix(S.edit);
+  fd.setAttribute('aria-valuenow', v);
+  fd.querySelector('.fill').style.height = v + '%';
+  fd.querySelector('.thumb').style.bottom = 'calc(' + v + '% - 14px)';
+  const lab = document.querySelector('[data-fv="' + gid + '"]');
+  if (lab && !S.edit.mute[gid]) lab.textContent = v;
+}
+document.addEventListener('pointerdown', e => {
+  const fd = e.target.closest('.fader'); if (!fd) return;
+  e.preventDefault();
+  try { fd.setPointerCapture(e.pointerId); } catch (er) {}
+  const rail = fd.querySelector('.rail');
+  const move = ev => { const r = rail.getBoundingClientRect(); setVol(fd.dataset.fader, clamp(Math.round((1 - (ev.clientY - r.top) / r.height) * 100), 0, 100), fd); };
+  const up = () => { fd.removeEventListener('pointermove', move); fd.removeEventListener('pointerup', up); fd.removeEventListener('pointercancel', up); };
+  move(e);
+  fd.addEventListener('pointermove', move); fd.addEventListener('pointerup', up); fd.addEventListener('pointercancel', up);
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (SEQ.playing) { stopSeq(); render(); } try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+});
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; if (UI.tab === 'start') render(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; toast('Klangkiste ist jetzt installiert!'); render(); });
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+render(true);
+</script>
+</body>
+</html>

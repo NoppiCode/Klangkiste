@@ -1,0 +1,19 @@
+{
+  "name": "Klangkiste – Musik mischen",
+  "short_name": "Klangkiste",
+  "description": "Bunte Klang-Knöpfe mischen, eigene Lieder bauen und neue Instrumente freischalten.",
+  "lang": "de",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14122B",
+  "theme_color": "#14122B",
+  "categories": ["music", "games", "kids", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
